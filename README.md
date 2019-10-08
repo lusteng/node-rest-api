@@ -7,7 +7,7 @@
  -->
 ### RESTful APT
 + 基本的URI   xxx/users
-+ 标准HTTP方法, GET、 POST、DELETE、PUT、PATCH
++ 标准HTTP方法, GET、 POST、DELETE、PUT、PATCH 
 + 传输的数据媒体类型， 如JSON、XML
 
 ### 安全 
@@ -15,7 +15,12 @@
 + 鉴权
 + 限流
 
-
+使用的中间件
+koa-body  处理json parse数据，处理文件上传
+koa-json-error 处理代码以及验证参数错误中间件
+koa-jwt  jwt鉴权
+koa-parameter 验证请求参数
+koa-static  文件目录静态
 
 ### Session
 Session 的优势

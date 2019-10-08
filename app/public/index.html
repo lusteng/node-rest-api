@@ -1,0 +1,172 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .wrap{
+            display: flex
+        }
+        .flex{
+            flex: 1
+        }
+        div, p {margin: 10px 0;}
+        ul{list-style: none; margin: 0; padding: 0}
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <p>{{sigleUserName ? "请登录" : `你的用户名是${sigleUserName}`}}</p>
+    <div class="wrap">
+        <div class="flex">
+            <p>上传图片：</p>
+            <form action="/upload" enctype="multipart/form-data" method="post">
+                <div>
+                    选择图片：<input type="file" name="file" accept="image/png"/>
+                </div>
+                <div>
+                    <button type="submit">上传</button>
+                </div>
+            </form> 
+        </div>
+        <div class="flex">
+            <p>注册：</p>
+            <div>
+                <div>
+                    用户名：<input type="text" v-model="resName" name="name"/>
+                </div>
+                <div>
+                    用户密码：<input type="password" v-model="resPassword" name="password"/>
+                </div>
+                <div>
+                    <button @click="handleResgeter">注册</button>
+                </div>
+            </div> 
+        </div>
+        <div class="flex">
+            <p>登录：</p>
+            <form action="/users/login" method="post">
+                <div>
+                    用户名：<input type="text" name="name"/>
+                </div>
+                <div>
+                    用户密码：<input type="password" name="password"/>
+                </div>
+                <div>
+                    <button type="submit">登录</button>
+                </div>
+            </form> 
+        </div>
+
+    </div>
+    <div >
+        <p>用户列表</p>
+        <ul>
+            <li v-for="(item, index) in userList" :key="index">
+                账号名：{{item.name}}， 密码： {{item.password}}
+                <a href="javascript:;" @click="handleDeleteUser(item._id)">删除用户</a>
+            </li>
+        </ul>
+    </div>
+    </div>
+    <script src="https://cdn.bootcss.com/vue/2.6.9/vue.min.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data(){
+                return {
+                    userList: [],
+                    resName: "",
+                    resPassword: "",
+                    loginName: "",
+                    loginPassword: "",
+                    sigleUserName: "",
+                }
+            },
+            created(){
+                this.fetchUser()
+            },
+            methods: {
+                fetchUser(){
+                    let _this = this
+                    fetchFuc("/users")  
+                    .then(data => _this.userList = data)
+                },
+                handleDeleteUser(id){ 
+                    let _this = this 
+                    fetchFuc(`/users/${id}`, {
+                        method: "delete"
+                    }).then(data => {
+                        if(data.ok){
+                            _this.fetchUser()
+                        } 
+                    })
+                },
+                handleResgeter(){
+                    let _this = this 
+                    fetchFuc("/users/register", {
+                        method: "post",
+                        headers: {
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: this.resName,
+                            password: this.resPassword
+                        })
+                    })
+                    .then(data => {
+                        if(data.ok){
+                            _this.fetchUser()
+                            console.log("注册成功")
+                        }else{
+                            alert(`注册失败，${data.message}`)
+                        } 
+                    }, (err) => {
+                        alert(`注册失败，${err}`)
+                    })
+
+                },
+                handleLogin(){
+                    let _this = this
+                    fetchFuc("/users/login", {
+                        method: "post",
+                        headers: {
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: this.loginName,
+                            password: this.loginPassword,
+                        })
+                    })
+                    .then(data => {
+                        if(data.ok){
+                            _this.sigleUserName = _this.loginName 
+                            alert("登录成功")
+                        }else{
+                            alert(`登录失败，${data.message}`)
+                        } 
+                    }, (err) => {
+                        alert(`登录失败，${err}`)
+                    })
+
+                }
+            },
+        })
+
+        function fetchFuc(url, options){ 
+            return new Promise((resolve, reject) => {
+                fetch(url, options) 
+                .then(response => response.json()) 
+                .then(data => {
+                    resolve(data)
+                })
+                .catch((error) => {
+                    reject(error)
+                }) 
+            })
+        }
+    </script>
+</body>
+</html>

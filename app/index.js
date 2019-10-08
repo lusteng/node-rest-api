@@ -1,14 +1,24 @@
+const path = require('path')
+const fs = require('fs')
 const Koa = require('koa')
 const _ = require('lodash');
 const error = require('koa-json-error')
 const parameter = require('koa-parameter');
-const bodyParser = require('koa-bodyparser');
+const koaBody = require('koa-body');
+const koaStatic = require('koa-static');
 
 const registerRouter = require('./routes/index')
-const { port } = require('./config')
+const { port, IMAGE_UPLOAD_PATH } = require('./config')
+const { mkdirFiles } = require('./utils')
 
+let imageUploadPath = path.join(__dirname, `/public/${IMAGE_UPLOAD_PATH}`)
 
 const app = new Koa()
+
+// 检测不存在images文件夹则创建
+mkdirFiles(imageUploadPath) 
+
+app.use(koaStatic(path.join(__dirname, 'public')));
 
 
 // 错误中间件
@@ -26,6 +36,7 @@ let formatError = err => {
 }   
  
 app.use(error(formatError));
+
 // 校验参数
 /** 
  * Usage example
@@ -34,9 +45,19 @@ app.use(error(formatError));
  *   name: 'string'
  *  });
 **/
-app.use(parameter(app));
+app.use(parameter(app)); 
 
-app.use(bodyParser())
+app.use(koaBody({
+    //上传文件格式
+    multipart: true,
+    // 上传的设置 
+    formidable: {
+        // 上传文件目录
+        uploadDir: imageUploadPath,
+        // 保存文件上传拓展名
+        keepExtensions: true
+    }
+}))
 
 //注册路由
 registerRouter(app) 
@@ -44,4 +65,4 @@ app.listen(port, () => {
     console.log('server start in port %s', port);
 })
 
-  
+   
