@@ -6,6 +6,7 @@ const error = require('koa-json-error')
 const parameter = require('koa-parameter');
 const koaBody = require('koa-body');
 const koaStatic = require('koa-static');
+const Router = require("koa-router")
 
 const registerRouter = require('./routes/index')
 const { port, IMAGE_UPLOAD_PATH } = require('./config')
@@ -13,10 +14,25 @@ const { mkdirFiles } = require('./utils')
 
 let imageUploadPath = path.join(__dirname, `/public/${IMAGE_UPLOAD_PATH}`)
 
-const app = new Koa()
+const app = new Koa() 
+
+/********* 使用图片监控打点，服务端拦截图片，或者图片上的query参数 仅练习案例  ***********/
+// const imgRouter = new Router() 
+// const url = require('url')
+// imgRouter.get('/uploads/upload_25c58910bedd1a5589a256e281a8f8e3.png', async (ctx, next) => {
+//     let imgPath = path.join(__dirname, `public/${url.parse(ctx.request.url).pathname}111`)
+//     let data = await fs.readFileSync(imgPath, (err) => {
+//         if(err) ctx.throw('500', err)
+//     })
+//     ctx.type = 'image/png'
+//     ctx.body = data 
+//     next()
+// })
+// app.use(imgRouter.routes())
 
 // 检测不存在images文件夹则创建
 mkdirFiles(imageUploadPath) 
+
 
 app.use(koaStatic(path.join(__dirname, 'public')));
 
@@ -61,7 +77,7 @@ app.use(koaBody({
 
 //注册路由
 registerRouter(app) 
-app.listen(port, () => { 
+app.listen(port, () => {
     console.log('server start in port %s', port);
 })
 

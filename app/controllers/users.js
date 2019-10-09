@@ -1,6 +1,6 @@
 const User = require('../models/users')
 const jwt = require('jsonwebtoken') 
-const {SECRET} = require('../config') 
+const {SECRET} = require('../config')   
 
 
 module.exports = {
@@ -51,6 +51,7 @@ module.exports = {
         } 
     },
     async deleteUser(ctx){
+        User.remove({_id: ctx.params})
         let user = User.findByIdAndRemove(ctx.params.id, (error, data) => {
             if(error){
                 console.log(error);
