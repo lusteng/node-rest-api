@@ -2,12 +2,27 @@ const User = require('../models/users')
 const jwt = require('jsonwebtoken') 
 const {SECRET} = require('../config') 
 
+
 module.exports = {
-    async getUser (ctx){
-        let {filter = ''} = ctx.request.query
+    async getUser (ctx, next){
+        let {filter = '', per_page = 10} = ctx.request.query
+        let page = Math.max(ctx.query.page * 1, 1) - 1  
         filter = filter.split(',').filter(f => f).map(f => `+${f}`)
-        // 查询多条被隐藏字段 select('+xxx +yyy')
-        ctx.body = await User.find().select(filter.join(' '))
+        // 查询多条过滤字段 select('+xxx +yyy')
+        //查询两次，待优化
+        let total = await User
+            .find({
+                name: new RegExp(ctx.query.q)
+            }).select(filter.join(' ')) 
+        // 使用limit skip组合查询分页
+        let data = await User.find({
+            name: new RegExp(ctx.query.q)  //模糊搜索
+        }).select(filter.join(' ')).limit(per_page * 1).skip(page * per_page)
+        ctx.body = {
+            ok: true,
+            data,
+            total: total.length 
+        } 
     },
     async findUser(ctx){ 
         let id = ctx.params.id 
@@ -121,6 +136,7 @@ module.exports = {
     },
     async unfollow(ctx){
         const _id = ctx.params.id
+        User.update
         const me = await User.findById(ctx.state.user._id).select('+following') 
         let index = me.following.map(id => id.toString()).indexOf(_id)
         if(index > -1){
@@ -129,7 +145,7 @@ module.exports = {
             me.save()
         }
         ctx.status = 204 
-    }
+    }, 
     
 } 
  
